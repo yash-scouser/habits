@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Habits">
+<meta name="theme-color" content="#161622">
+<title>Daily Habits</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
+  background:#161622;
+  color:#eeeef8;
+  padding-bottom:40px;
+}
+
+/* HEADER — sticky top */
+#hdr{
+  position:sticky;top:0;z-index:100;
+  background:#1e1e2d;
+  border-bottom:1px solid rgba(255,255,255,0.12);
+  padding:50px 14px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+#hdr-title{font-size:15px;font-weight:600;color:#eeeef8;}
+#hdr-sub{font-size:11px;color:#44445a;margin-top:1px;}
+#hdr-right{display:flex;gap:8px;align-items:center;}
+.hbtn{
+  background:#26263a;border:1px solid rgba(255,255,255,0.12);
+  color:#8888aa;font-size:12px;padding:6px 10px;
+  border-radius:8px;cursor:pointer;font-family:inherit;
+}
+.hbtn-add{background:#4f8ef7;border-color:#4f8ef7;color:#fff;font-size:17px;padding:4px 12px;}
+
+/* TIP BANNER */
+#tip{
+  background:rgba(79,142,247,0.1);
+  border-bottom:1px solid rgba(79,142,247,0.2);
+  padding:8px 14px;font-size:11px;color:#8ab4f8;
+  display:flex;align-items:center;gap:6px;
+}
+#tip button{margin-left:auto;background:none;border:none;color:#8ab4f8;font-size:16px;cursor:pointer;padding:0 4px;}
+
+/* STATS ROW */
+#stats{
+  background:#1e1e2d;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  display:flex;
+}
+.st{flex:1;text-align:center;padding:8px 2px;border-right:1px solid rgba(255,255,255,0.06);}
+.st:last-child{border-right:none;}
+.sv{font-size:17px;font-weight:600;}
+.sl{font-size:9px;color:#44445a;text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+.cg{color:#2ecc71;}.cr{color:#e74c3c;}.ca{color:#f39c12;}
+
+/* PROGRESS */
+#prog{background:#1e1e2d;padding:7px 14px 9px;border-bottom:1px solid rgba(255,255,255,0.06);}
+#ptrack{height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;display:flex;}
+#pg{height:100%;background:#2ecc71;transition:width .3s;}
+#pr{height:100%;background:#e74c3c;transition:width .3s;}
+#plbl{font-size:10px;color:#44445a;margin-top:4px;display:flex;gap:14px;}
+.dot{width:7px;height:7px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle;}
+
+/* LEGEND */
+#legend{
+  background:#1e1e2d;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  padding:6px 14px;display:flex;gap:14px;flex-wrap:wrap;
+}
+.lg{display:flex;align-items:center;gap:4px;font-size:10px;color:#55556a;}
+.lc{width:9px;height:9px;border-radius:2px;display:inline-block;flex-shrink:0;}
+
+/* =====================
+   GRID — the key fix:
+   overflow-x on ONE wrapper, sticky left col
+   ===================== */
+#grid-scroll{
+  overflow-x:auto;
+  overflow-y:visible;
+  -webkit-overflow-scrolling:touch;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+/* The actual grid table */
+#grid-table{
+  border-collapse:collapse;
+  /* width = name col + 31 day cols */
+  min-width:calc(160px + 31 * 32px);
+}
+
+/* Day number header row */
+#grid-table thead tr th{
+  background:#26263a;
+  padding:7px 0;
+  font-size:10px;font-weight:600;
+  color:#55556a;
+  text-align:center;
+  border-right:1px solid rgba(255,255,255,0.06);
+  border-bottom:1px solid rgba(255,255,255,0.12);
+  white-space:nowrap;
+  position:sticky;top:0;z-index:5;
+}
+#grid-table thead tr th.name-th{
+  text-align:left;
+  padding-left:10px;
+  font-size:9px;letter-spacing:.5px;text-transform:uppercase;
+  width:160px;min-width:160px;
+  position:sticky;left:0;z-index:15;
+  background:#26263a;
+  border-right:1px solid rgba(255,255,255,0.15);
+}
+#grid-table thead tr th.today-th{color:#f39c12;}
+
+/* Activity rows */
+#grid-table tbody tr{border-bottom:1px solid rgba(255,255,255,0.06);}
+#grid-table tbody tr:nth-child(even) td{background:#1e1e2d;}
+#grid-table tbody tr:nth-child(odd) td{background:#161622;}
+
+/* Name cell — sticky left */
+td.name-td{
+  position:sticky;left:0;z-index:5;
+  width:160px;min-width:160px;
+  border-right:1px solid rgba(255,255,255,0.15);
+  padding:0 4px 0 10px;
+  background:inherit;
+}
+td.name-td input{
+  width:100%;font-size:13px;font-weight:500;
+  color:#eeeef8;background:transparent;
+  border:none;outline:none;
+  padding:11px 0;font-family:inherit;
+}
+td.name-td input::placeholder{color:#33334a;font-weight:400;}
+td.name-td input:focus{
+  background:#26263a;border-radius:5px;
+  padding:11px 5px;margin:0 -5px;
+}
+.del-btn{
+  background:none;border:none;color:#33334a;
+  font-size:15px;cursor:pointer;padding:2px 4px;
+  vertical-align:middle;line-height:1;
+}
+.del-btn:active{color:#e74c3c;}
+
+/* Day cells */
+td.cell{
+  width:32px;min-width:32px;
+  height:40px;
+  text-align:center;
+  vertical-align:middle;
+  cursor:pointer;
+  font-size:13px;
+  color:transparent;
+  border-right:1px solid rgba(255,255,255,0.04);
+  -webkit-user-select:none;user-select:none;
+}
+td.cell.done{background:rgba(46,204,113,0.18);color:#2ecc71;}
+td.cell.miss{background:rgba(231,76,60,0.18);color:#e74c3c;}
+td.cell.today-cell:not(.done):not(.miss){background:rgba(243,156,18,0.13);}
+td.cell.future{opacity:.18;pointer-events:none;}
+td.cell.off{pointer-events:none;opacity:0;}
+td.cell.pre{opacity:.15;pointer-events:none;}
+
+/* ADD BUTTON */
+#add-btn{
+  display:block;width:100%;
+  padding:14px;text-align:center;
+  background:#1e1e2d;
+  border:none;border-top:1px solid rgba(255,255,255,0.06);
+  color:#8888aa;font-size:13px;cursor:pointer;
+  font-family:inherit;
+}
+#add-btn:active{background:#26263a;}
+
+/* EMPTY STATE */
+#empty{
+  display:none;
+  padding:50px 20px;text-align:center;
+}
+#empty p{font-size:14px;color:#8888aa;margin-bottom:16px;}
+#empty button{
+  background:#4f8ef7;color:#fff;border:none;
+  padding:12px 28px;border-radius:10px;
+  font-size:14px;cursor:pointer;font-family:inherit;
+}
+
+/* MONTH MODAL */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:flex-end;}
+.mbox{
+  background:#1e1e2d;width:100%;
+  border-radius:18px 18px 0 0;
+  padding:22px 18px 40px;
+  border-top:1px solid rgba(255,255,255,0.12);
+}
+.mbox h3{font-size:15px;font-weight:600;margin-bottom:14px;}
+.mbox input{
+  width:100%;font-size:16px;padding:12px 13px;
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:9px;background:#26263a;color:#eeeef8;
+  margin-bottom:12px;font-family:inherit;outline:none;
+}
+.mbtns{display:flex;gap:10px;}
+.mbtns button{flex:1;padding:13px;border-radius:9px;border:none;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;}
+.mc{background:#26263a;color:#8888aa;}
+.mo{background:#4f8ef7;color:#fff;}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:50px;left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:#26263a;color:#eeeef8;
+  border:1px solid rgba(255,255,255,0.12);
+  font-size:12px;padding:9px 16px;border-radius:10px;
+  opacity:0;transition:opacity .2s,transform .2s;
+  pointer-events:none;white-space:nowrap;z-index:300;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div>
+    <div id="hdr-title">Daily Habits</div>
+    <div id="hdr-sub" id="hdr-sub"></div>
+  </div>
+  <div id="hdr-right">
+    <button class="hbtn" onclick="openModal()"><span id="mon-lbl">Month</span> ▾</button>
+    <button class="hbtn hbtn-add" onclick="addRow()">＋</button>
+  </div>
+</div>
+
+<div id="tip">
+  <span>💡 Tap any activity name to rename it. Tap a day cell once = done, twice = missed, three times = clear.</span>
+  <button onclick="this.parentElement.style.display='none';sSet('ht','1')">✕</button>
+</div>
+
+<div id="stats"></div>
+
+<div id="prog">
+  <div id="ptrack"><div id="pg" style="width:0%"></div><div id="pr" style="width:0%"></div></div>
+  <div id="plbl">
+    <span><span class="dot" style="background:#2ecc71"></span><span id="pl-g">0 done</span></span>
+    <span><span class="dot" style="background:#e74c3c"></span><span id="pl-r">0 missed</span></span>
+    <span><span class="dot" style="background:rgba(255,255,255,0.15)"></span><span id="pl-p">0 pending</span></span>
+  </div>
+</div>
+
+<div id="legend">
+  <div class="lg"><span class="lc" style="background:rgba(46,204,113,0.18);border:1px solid #2ecc71"></span>Done</div>
+  <div class="lg"><span class="lc" style="background:rgba(231,76,60,0.18);border:1px solid #e74c3c"></span>Missed</div>
+  <div class="lg"><span class="lc" style="background:rgba(243,156,18,0.13);border:1px solid #f39c12"></span>Today</div>
+  <div class="lg" style="margin-left:auto;font-size:9px;color:#33334a;">swipe right → to see all days</div>
+</div>
+
+<div id="grid-scroll">
+  <table id="grid-table">
+    <thead><tr id="head-row"></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div id="empty">
+    <p>Tap ＋ to add your first habit</p>
+    <button onclick="addRow()">＋ Add activity</button>
+  </div>
+</div>
+
+<button id="add-btn" onclick="addRow()">＋ &nbsp; Add activity</button>
+
+<div class="mbg" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="mbox">
+    <h3>Set month</h3>
+    <input id="minput" type="text" placeholder="e.g. July 2026" autocorrect="off" autocomplete="off">
+    <div class="mbtns">
+      <button class="mc" onclick="closeModal()">Cancel</button>
+      <button class="mo" onclick="saveMonth()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var MN=['january','february','march','april','may','june','july','august','september','october','november','december'];
+var month='', acts=[], done={}, miss={}, startDay=0;
+
+function sGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
+function sSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
+
+function nowMonth(){
+  var n=new Date();
+  var s=MN[n.getMonth()];
+  return s.charAt(0).toUpperCase()+s.slice(1)+' '+n.getFullYear();
+}
+function daysIn(m){
+  var p=(m||'').trim().split(' ');
+  var mi=MN.indexOf((p[0]||'').toLowerCase());
+  var yr=parseInt(p[1])||new Date().getFullYear();
+  if(mi<0)return 31;
+  return new Date(yr,mi+1,0).getDate();
+}
+function isCur(){
+  var p=(month||'').trim().split(' ');
+  var mi=MN.indexOf((p[0]||'').toLowerCase());
+  var yr=parseInt(p[1])||new Date().getFullYear();
+  var n=new Date();
+  return mi===n.getMonth()&&yr===n.getFullYear();
+}
+function isPast(){
+  var p=(month||'').trim().split(' ');
+  var mi=MN.indexOf((p[0]||'').toLowerCase());
+  var yr=parseInt(p[1])||new Date().getFullYear();
+  var n=new Date();
+  return yr<n.getFullYear()||(yr===n.getFullYear()&&mi<n.getMonth());
+}
+function today(){ return new Date().getDate(); }
+
+function autoMiss(){
+  if(startDay===0) return; // don't mark anything until user starts tapping
+  var days=daysIn(month),t=today(),ic=isCur(),ip=isPast();
+  var changed=false;
+  for(var ai=0;ai<acts.length;ai++){
+    for(var d=1;d<=days;d++){
+      var k=ai+'_'+d;
+      var past=(ic&&d<t)||ip;
+      var afterStart=ip||(d>=startDay);
+      if(past&&afterStart&&!done[k]&&!miss[k]){
+        miss[k]=true; changed=true;
+      }
+    }
+  }
+  if(changed) save();
+}
+
+function tap(ai,d){
+  if(startDay===0){ startDay=today(); save(); }
+  var k=ai+'_'+d;
+  if(done[k]){ done[k]=false; miss[k]=true; }
+  else if(miss[k]){ miss[k]=false; }
+  else { done[k]=true; }
+  save();
+  // Update just this cell
+  var el=document.getElementById('c_'+ai+'_'+d);
+  if(el){
+    el.className=baseCellClass(ai,d);
+    el.textContent=done[k]?'✓':miss[k]?'✗':'';
+  }
+  updateStats();
+}
+
+function baseCellClass(ai,d){
+  var days=daysIn(month),t=today(),ic=isCur();
+  if(d>days) return 'cell off';
+  var k=ai+'_'+d;
+  var cls='cell';
+  if(done[k]) cls+=' done';
+  else if(miss[k]) cls+=' miss';
+  var tdy=ic&&d===t;
+  if(tdy) cls+=' today-cell';
+  var fut=ic&&d>t;
+  if(fut) cls+=' future';
+  var pre=ic&&startDay>0&&d<startDay&&!done[k]&&!miss[k];
+  if(pre) cls+=' pre';
+  return cls;
+}
+
+function addRow(){
+  acts.push('');
+  save();
+  rebuild();
+  setTimeout(function(){
+    var all=document.querySelectorAll('td.name-td input');
+    if(all.length){ all[all.length-1].focus(); }
+  },80);
+}
+
+function delRow(ai){
+  var nm=acts[ai]||('Activity '+(ai+1));
+  if(!confirm('Remove "'+nm+'"?')) return;
+  acts.splice(ai,1);
+  var nd={},nm2={};
+  Object.keys(done).forEach(function(k){
+    var s=k.split('_');var a=parseInt(s[0]);var d=s[1];
+    if(a<ai) nd[k]=done[k]; else if(a>ai) nd[(a-1)+'_'+d]=done[k];
+  });
+  Object.keys(miss).forEach(function(k){
+    var s=k.split('_');var a=parseInt(s[0]);var d=s[1];
+    if(a<ai) nm2[k]=miss[k]; else if(a>ai) nm2[(a-1)+'_'+d]=miss[k];
+  });
+  done=nd; miss=nm2;
+  save(); rebuild();
+}
+
+function rebuild(){
+  autoMiss();
+  var days=daysIn(month),t=today(),ic=isCur();
+
+  // Update labels
+  document.getElementById('hdr-sub').textContent=month;
+  document.getElementById('mon-lbl').textContent=month;
+
+  // Build header row
+  var hr=document.getElementById('head-row');
+  hr.innerHTML='<th class="name-th">Activity</th>';
+  for(var d=1;d<=31;d++){
+    var th=document.createElement('th');
+    if(d>days){ th.textContent=''; th.style.opacity='0'; }
+    else {
+      th.textContent=d;
+      if(ic&&d===t) th.className='today-th';
+    }
+    hr.appendChild(th);
+  }
+
+  // Empty state
+  var tb=document.getElementById('tbody');
+  tb.innerHTML='';
+  var em=document.getElementById('empty');
+  if(acts.length===0){ em.style.display='block'; updateStats(); return; }
+  em.style.display='none';
+
+  for(var ai=0;ai<acts.length;ai++){
+    var tr=document.createElement('tr');
+
+    // Name cell
+    var ntd=document.createElement('td');
+    ntd.className='name-td';
+    var inp=document.createElement('input');
+    inp.type='text';
+    inp.value=acts[ai];
+    inp.placeholder='Activity '+(ai+1)+' — tap to name';
+    inp.setAttribute('autocorrect','off');
+    inp.setAttribute('autocomplete','off');
+    (function(idx){
+      inp.addEventListener('blur',function(){ acts[idx]=this.value; save(); });
+      inp.addEventListener('change',function(){ acts[idx]=this.value; save(); });
+    })(ai);
+    var db=document.createElement('button');
+    db.className='del-btn';
+    db.textContent='×';
+    (function(idx){ db.addEventListener('click',function(e){ e.stopPropagation(); delRow(idx); }); })(ai);
+    ntd.appendChild(inp);
+    ntd.appendChild(db);
+    tr.appendChild(ntd);
+
+    // Day cells
+    for(var d=1;d<=31;d++){
+      var td=document.createElement('td');
+      td.id='c_'+ai+'_'+d;
+      td.className=baseCellClass(ai,d);
+      var k=ai+'_'+d;
+      td.textContent=done[k]?'✓':miss[k]?'✗':'';
+      if(d<=days&&!(ic&&d>t)){
+        (function(a,day){ td.addEventListener('click',function(){ tap(a,day); }); })(ai,d);
+      }
+      tr.appendChild(td);
+    }
+    tb.appendChild(tr);
+  }
+  updateStats();
+}
+
+function updateStats(){
+  var days=daysIn(month),t=today(),ic=isCur();
+  var trackable=ic?Math.min(t,days):days;
+  var s=ic&&startDay>0?startDay:1;
+  var tD=0,tM=0,tP=0;
+  for(var ai=0;ai<acts.length;ai++){
+    for(var d=s;d<=trackable;d++){
+      tP++;
+      if(done[ai+'_'+d]) tD++;
+      else if(miss[ai+'_'+d]) tM++;
+    }
+  }
+  var pD=tP>0?Math.round(tD/tP*100):0;
+  var pM=tP>0?Math.round(tM/tP*100):0;
+  var streak=0;
+  for(var d=trackable;d>=s;d--){
+    var all=true;
+    for(var ai=0;ai<acts.length;ai++){ if(!done[ai+'_'+d]){all=false;break;} }
+    if(all&&acts.length>0) streak++; else break;
+  }
+  var todD=0;
+  if(ic){ for(var ai=0;ai<acts.length;ai++){ if(done[ai+'_'+t]) todD++; } }
+
+  var h='<div class="st"><div class="sv cg">'+pD+'%</div><div class="sl">Done</div></div>';
+  h+='<div class="st"><div class="sv cr">'+pM+'%</div><div class="sl">Missed</div></div>';
+  if(ic) h+='<div class="st"><div class="sv ca">'+todD+'/'+acts.length+'</div><div class="sl">Today</div></div>';
+  h+='<div class="st"><div class="sv">'+streak+'</div><div class="sl">Streak</div></div>';
+  h+='<div class="st"><div class="sv">'+Math.max(0,days-trackable)+'</div><div class="sl">Left</div></div>';
+  document.getElementById('stats').innerHTML=h;
+
+  document.getElementById('pg').style.width=pD+'%';
+  document.getElementById('pr').style.width=pM+'%';
+  document.getElementById('pl-g').textContent=tD+' done';
+  document.getElementById('pl-r').textContent=tM+' missed';
+  document.getElementById('pl-p').textContent=(tP-tD-tM)+' pending';
+}
+
+function openModal(){
+  document.getElementById('minput').value=month;
+  document.getElementById('modal').style.display='flex';
+  setTimeout(function(){ document.getElementById('minput').focus(); },100);
+}
+function closeModal(){ document.getElementById('modal').style.display='none'; }
+function saveMonth(){
+  var v=document.getElementById('minput').value.trim();
+  if(!v) return;
+  var p=v.split(' ');
+  var mi=MN.indexOf((p[0]||'').toLowerCase());
+  if(mi<0){ alert('Please enter like: July 2026'); return; }
+  var yr=parseInt(p[1])||new Date().getFullYear();
+  month=MN[mi].charAt(0).toUpperCase()+MN[mi].slice(1)+' '+yr;
+  done={}; miss={}; startDay=0;
+  closeModal(); save(); rebuild();
+  showToast('Month changed. Tap cells to start tracking!');
+}
+
+function showToast(m){
+  var el=document.getElementById('toast');
+  el.textContent=m; el.classList.add('on');
+  setTimeout(function(){ el.classList.remove('on'); },2500);
+}
+
+function save(){
+  var k='hb6_'+month.replace(/\s/g,'_');
+  sSet(k,JSON.stringify({acts:acts,done:done,miss:miss,start:startDay}));
+  sSet('hb6_last',month);
+}
+
+function init(){
+  if(sGet('ht')==='1') document.getElementById('tip').style.display='none';
+  month=nowMonth();
+  var lm=sGet('hb6_last'); if(lm) month=lm;
+  var raw=sGet('hb6_'+month.replace(/\s/g,'_'));
+  if(raw){
+    try{
+      var o=JSON.parse(raw);
+      acts=Array.isArray(o.acts)?o.acts:[];
+      done=o.done||{}; miss=o.miss||{};
+      startDay=o.start||0;
+    }catch(e){ acts=[];done={};miss={};startDay=0; }
+  } else { acts=[];done={};miss={};startDay=0; }
+  rebuild();
+}
+
+var _ld=new Date().getDate();
+setInterval(function(){
+  var d=new Date().getDate();
+  if(d!==_ld){ _ld=d; rebuild(); showToast('New day — undone tasks marked red.'); }
+},60000);
+
+document.getElementById('minput').addEventListener('keydown',function(e){ if(e.key==='Enter') saveMonth(); });
+init();
+</script>
+</body>
+</html>
